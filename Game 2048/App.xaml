@@ -1,0 +1,19 @@
+﻿<Application
+    x:Class="Game_2048.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Game_2048"
+    RequestedTheme="Light">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <AcrylicBrush x:Key="MyAcrylicBrush" BackgroundSource="HostBackdrop" FallbackColor="#faf8ef" TintColor="#faf8ef" TintOpacity="0.7"/>
+                    <AcrylicBrush x:Key="MyAcrylicBrush2" BackgroundSource="HostBackdrop" FallbackColor="#8f7a66" TintColor="#8f7a66" TintOpacity="0.7"/>
+                    <AcrylicBrush x:Key="MyAcrylicBrush3" BackgroundSource="HostBackdrop" FallbackColor="#bbada0" TintColor="#bbada0" TintOpacity="0.7"/>
+                    <AcrylicBrush x:Key="MyAcrylicBrush4" BackgroundSource="HostBackdrop" FallbackColor="#bbada0" TintColor="#bbada0" TintOpacity="0.9"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
