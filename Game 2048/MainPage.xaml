@@ -17,9 +17,9 @@
             <TextBlock Text="Game 2048" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Left" TextAlignment="Center" VerticalAlignment="Center" Margin="10,0,0,0"/>
         </Grid>
 
-        <Button Name="Help" Margin="80,0,0,0" IsTabStop="False" Content="?" FontWeight="SemiBold" Width="{Binding ActualHeight, ElementName=Help}" Style="{ThemeResource ButtonRevealStyle}" Click="HelpButton_Click"/>
+        <Button Name="Help" Grid.Row="0" Margin="80,0,0,0" IsTabStop="False" Content="?" FontWeight="SemiBold" Width="{Binding ActualHeight, ElementName=Help}" Style="{ThemeResource ButtonRevealStyle}" Click="HelpButton_Click"/>
 
-        <Grid Grid.Row="1" VerticalAlignment="Center">
+        <Grid Name="MainContainer" Grid.Row="1" VerticalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="15"/>
@@ -50,14 +50,17 @@
                 </StackPanel>
             </StackPanel>
 
-            <Grid Grid.Row="4" Name="GameLayout" MinWidth="{Binding MinHeight, RelativeSource={RelativeSource Mode=Self}}" MinHeight="330" MaxWidth="{Binding MaxHeight, RelativeSource={RelativeSource Mode=Self}}" MaxHeight="420" Background="{ThemeResource MyAcrylicBrush4}" ManipulationMode="TranslateX,TranslateY,TranslateInertia" ManipulationDelta="GameLayout_ManipulationDelta"/>
+            <Grid Name="GameLayoutContainer" Grid.Row="4" MinWidth="{Binding MinHeight, RelativeSource={RelativeSource Mode=Self}}" MinHeight="330" MaxWidth="{Binding MaxHeight, RelativeSource={RelativeSource Mode=Self}}" MaxHeight="420" Width="{Binding Height, RelativeSource={RelativeSource Mode=Self}}" Height="{Binding MinHeight, RelativeSource={RelativeSource Mode=Self}}" CornerRadius="8">
+                <Grid Name="GameLayout" Background="{ThemeResource MyAcrylicBrush4}" ManipulationMode="TranslateX,TranslateY,TranslateInertia" ManipulationDelta="GameLayout_ManipulationDelta"/>
 
-            <Border Grid.Row="4" Width="{Binding Width, ElementName=GameLayout}" Height="{Binding Height, ElementName=GameLayout}" Visibility="{Binding Path=GameStateTextVisibility}" Opacity="{Binding Path=GameStateTextOpacity}" Background="#80eee4da" CornerRadius="{Binding CornerRadius, ElementName=GameLayout}">
-                <Border.OpacityTransition>
-                    <ScalarTransition/>
-                </Border.OpacityTransition>
-                <TextBlock Name="GameStateText" Text="{Binding Path=GameStateText}" Foreground="#776e65" FontWeight="Bold" TextAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+                <Border Visibility="{Binding Path=GameStateTextVisibility}" Opacity="{Binding Path=GameStateTextOpacity}" Background="#80eee4da">
+                    <Border.OpacityTransition>
+                        <ScalarTransition Duration="0:0:1.5"/>
+                    </Border.OpacityTransition>
+                    <TextBlock Name="GameStateText" Text="{Binding Path=GameStateText}" Foreground="#776e65" FontSize="50" FontWeight="Bold" TextAlignment="Center" VerticalAlignment="Center">
+                    </TextBlock>
+                </Border>
+            </Grid>
         </Grid>
     </Grid>
 </Page>

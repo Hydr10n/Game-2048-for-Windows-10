@@ -7,7 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="Tips"
-    PrimaryButtonText="OK">
+    PrimaryButtonText="OK"
+    Background="{ThemeResource SystemControlAcrylicWindowBrush}">
     <Grid>
         <TextBlock TextWrapping="Wrap" VerticalAlignment="Top">
             How to Play: Use arrow keys or swipe on screen to move tiles. When 2 tiles with the same number touch, they merge into 1. Get the number "2048" to win!

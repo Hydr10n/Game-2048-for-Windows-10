@@ -1,12 +1,13 @@
 ﻿/*
  * Project: Game 2048
- * Last Modified: 2020/06/29
+ * Last Modified: 2020/07/02
  * 
  * Copyright (C) 2020 Programmer-Yang_Xun@outlook.com. All Rights Reserved.
  * Welcome to visit https://GitHub.com/Hydr10n
  */
 
 using System;
+using System.Numerics;
 using Windows.ApplicationModel.Core;
 using Windows.System;
 using Windows.UI;
@@ -22,13 +23,12 @@ namespace Game_2048
     {
         private enum Direction { Left, Up, Right, Down }
 
-        private const double PaddingScale = 0.06, TileScale = 1 - 2 * PaddingScale, Layout4RepositionAnimationDurationUnit = 40;
+        private const double PaddingScale = 0.06;
         private const string GameSaveKeyLayoutSelection = "LayoutSelection";
 
         private readonly ViewModel ViewModel = new ViewModel();
 
         private int tilesCountPerSide, gameSaveKeysIndex;
-        private double tileFullSideLength, repositionAnimationDurationUnit;
 
         public MainPage()
         {
@@ -42,39 +42,19 @@ namespace Game_2048
         {
             var coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
             coreTitleBar.ExtendViewIntoTitleBar = true;
-            coreTitleBar.LayoutMetricsChanged += CoreTitleBar_LayoutMetricsChanged;
+            coreTitleBar.LayoutMetricsChanged += (sender, e) => TitleBar.Height = sender.Height;
             Window.Current.SetTitleBar(TitleBar);
             var appTitleBar = ApplicationView.GetForCurrentView().TitleBar;
             appTitleBar.ButtonBackgroundColor = Colors.Transparent;
             appTitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
         }
 
-        private void CoreTitleBar_LayoutMetricsChanged(CoreApplicationViewTitleBar sender, object args) => TitleBar.Height = sender.Height;
-
-        private void SetGameLayoutGrid()
-        {
-            tileFullSideLength = GameLayout.Height / (tilesCountPerSide + PaddingScale * 2);
-            GameLayout.Padding = new Thickness(tileFullSideLength * PaddingScale);
-            RowDefinitionCollection rowDefinitions = GameLayout.RowDefinitions;
-            rowDefinitions.Clear();
-            ColumnDefinitionCollection columnDefinitions = GameLayout.ColumnDefinitions;
-            columnDefinitions.Clear();
-            for (int i = 0; i < tilesCountPerSide; i++)
-            {
-                rowDefinitions.Add(new RowDefinition() { Height = new GridLength(tileFullSideLength) });
-                columnDefinitions.Add(new ColumnDefinition { Width = new GridLength(tileFullSideLength) });
-            }
-        }
-
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            double sideLength = Math.Min(Math.Max(0.6 * Math.Min(ActualHeight, ActualWidth), GameLayout.MinHeight), GameLayout.MaxHeight);
-            GameLayout.CornerRadius = new CornerRadius(sideLength * 0.023);
-            GameLayout.Width = GameLayout.Height = sideLength;
-            GameStateText.FontSize = 45 * GameLayout.Height / GameLayout.MinHeight;
-            if (!ViewModel.LayoutReady)
-                return;
-            SetGameLayoutGrid();
+            float scale = (float)(Math.Min(Math.Max(0.6 * Math.Min(ActualHeight, ActualWidth), GameLayoutContainer.MinHeight), GameLayoutContainer.MaxHeight) / GameLayoutContainer.MinHeight);
+            GameLayoutContainer.CenterPoint = new Vector3((float)GameLayoutContainer.ActualWidth / 2, 0, 0);
+            GameLayoutContainer.Scale = new Vector3(scale, scale, 1);
+            MainContainer.Margin = new Thickness(0, 0, 0, GameLayoutContainer.ActualHeight * (scale - 1));
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -89,31 +69,22 @@ namespace Game_2048
 
         private void Layout_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            int count, index = (sender as ComboBox).SelectedIndex;
-            switch (index)
-            {
-                case 0:
-                    count = 4;
-                    gameSaveKeysIndex = 0;
-                    repositionAnimationDurationUnit = Layout4RepositionAnimationDurationUnit;
-                    break;
-                case 1:
-                    count = 5;
-                    gameSaveKeysIndex = 1;
-                    repositionAnimationDurationUnit = Layout4RepositionAnimationDurationUnit * 4 / 5;
-                    break;
-                case 2:
-                    count = 6;
-                    gameSaveKeysIndex = 2;
-                    repositionAnimationDurationUnit = Layout4RepositionAnimationDurationUnit * 4 / 6;
-                    break;
-                default: return;
-            }
-            if (tilesCountPerSide == count)
-                return;
-            tilesCountPerSide = count;
+            int index = (sender as ComboBox).SelectedIndex;
+            gameSaveKeysIndex = index;
+            tilesCountPerSide = index + 4;
+            ViewModel.GameState = GameState.NotStarted;
             GameLayout.Children.Clear();
-            SetGameLayoutGrid();
+            double tileFullSideLength = GameLayout.ActualHeight / (tilesCountPerSide + PaddingScale * 2);
+            GameLayout.Padding = new Thickness(tileFullSideLength * PaddingScale);
+            RowDefinitionCollection rowDefinitions = GameLayout.RowDefinitions;
+            rowDefinitions.Clear();
+            ColumnDefinitionCollection columnDefinitions = GameLayout.ColumnDefinitions;
+            columnDefinitions.Clear();
+            for (int i = 0; i < tilesCountPerSide; i++)
+            {
+                rowDefinitions.Add(new RowDefinition { Height = new GridLength(tileFullSideLength) });
+                columnDefinitions.Add(new ColumnDefinition { Width = new GridLength(tileFullSideLength) });
+            }
             if (InitializeGameLayout())
                 ViewModel.GameState = GameState.Started;
             ViewModel.LayoutReady = true;
@@ -135,36 +106,23 @@ namespace Game_2048
                 case VirtualKey.Up: MoveTiles(Direction.Up); break;
                 case VirtualKey.Right: MoveTiles(Direction.Right); break;
                 case VirtualKey.Down: MoveTiles(Direction.Down); break;
-                default: return;
             }
-            SaveGameProgress();
         }
 
         private void GameLayout_ManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
         {
-            const double SwipeDistanceThreshold = 30, SwipeVelocityTheshold = 0.15;
+            const double SwipeDistanceThreshold = 30, SwipeVelocityThreshold = 0.15;
             if (e.IsInertial)
             {
                 e.Complete();
                 double translationX = e.Cumulative.Translation.X, translationY = e.Cumulative.Translation.Y;
-                if (Math.Abs(translationX) > Math.Abs(translationY) && Math.Abs(e.Velocities.Linear.X) > SwipeVelocityTheshold)
+                if (Math.Abs(translationX) > Math.Abs(translationY))
                 {
-                    if (Math.Abs(translationX) > SwipeDistanceThreshold)
-                        if (translationX > 0)
-                            MoveTiles(Direction.Right);
-                        else
-                            MoveTiles(Direction.Left);
+                    if (Math.Abs(translationX) > SwipeDistanceThreshold && Math.Abs(e.Velocities.Linear.X) > SwipeVelocityThreshold)
+                        MoveTiles(translationX > 0 ? Direction.Right : Direction.Left);
                 }
-                else if (Math.Abs(translationY) > SwipeDistanceThreshold && Math.Abs(e.Velocities.Linear.Y) > SwipeVelocityTheshold)
-                {
-                    if (translationY > 0)
-                        MoveTiles(Direction.Down);
-                    else
-                        MoveTiles(Direction.Up);
-                }
-                else
-                    return;
-                SaveGameProgress();
+                else if (Math.Abs(translationY) > SwipeDistanceThreshold && Math.Abs(e.Velocities.Linear.Y) > SwipeVelocityThreshold)
+                    MoveTiles(translationY > 0 ? Direction.Down : Direction.Up);
             }
         }
     }

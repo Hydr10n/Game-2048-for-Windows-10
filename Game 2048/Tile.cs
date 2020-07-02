@@ -22,7 +22,7 @@ namespace Game_2048
     class Tile : Button
     {
         private const int TileForegroundIndex = 0, TileBackgroundIndex = 1;
-        private const double MinScale = 0.3, MaxScale = 1.2, ScaleAnimationDuration = 150;
+        private const double MinSizeScale = 0.5, MaxSizeScale = 1.2, ScaleDuration = 150, Layout4MovementDurationPerCell = 40;
 
         private static readonly Color[,] TileColors = new Color[,] {    // [0]: text color; [1]: background color
             { new Color(), Color.FromArgb(0xff, 0xcd, 0xc1, 0xb4) },                               // empty
@@ -39,10 +39,8 @@ namespace Game_2048
             { Color.FromArgb(0xff, 0xf9, 0xf6, 0xf2), Color.FromArgb(0xff, 0xed, 0xc2, 0x2e) }     // 2048
         };
 
-        private readonly double initialParentSideLength, initialFullSideLength, repositionAnimationDurationUnit, scale;
+        private readonly double fullSideLength, movementDurationPerCell;
         private readonly Grid parent;
-
-        private double fullSideLength, maxFontSize, fontScale = 1;
 
         private int number;
         public int Number
@@ -53,59 +51,45 @@ namespace Game_2048
                 number = value;
                 if (value != 0)
                     Content = value;
+                FontSize = fullSideLength * 0.6;
                 if (value > 1000)
-                    fontScale = 0.55;
+                    FontSize *= 0.55;
                 else if (value > 100)
-                    fontScale = 0.75;
+                    FontSize *= 0.75;
                 int tileColorIndex = GetTileColorIndex(Number);
                 Background = new SolidColorBrush(TileColors[tileColorIndex, TileBackgroundIndex]);
                 Foreground = new SolidColorBrush(TileColors[tileColorIndex, TileForegroundIndex]);
             }
         }
 
-        public Tile(Grid parent, int row, int column, int number, double fullSideLength, double repositionAnimationDurationUnit, double scale)
+        public static Storyboard Storyboard { get; set; }
+
+        public Tile(Grid parent, int row, int column, int number)
         {
             RequestedTheme = ElementTheme.Dark;
             Style = (Style)Resources["ButtonRevealStyle"];
             Opacity = 0.85;
             IsTabStop = false;
-            Padding = new Thickness();
-            CornerRadius = new CornerRadius(fullSideLength * scale * 0.08);
             FontWeight = FontWeights.Bold;
             HorizontalAlignment = HorizontalAlignment.Center;
             VerticalAlignment = VerticalAlignment.Center;
+            Padding = new Thickness();
+            fullSideLength = parent.RowDefinitions[0].Height.Value;
+            Width = Height = fullSideLength - parent.Padding.Top * 2;
+            CornerRadius = new CornerRadius(fullSideLength * 0.07);
             parent.Children.Add(this);
             SetCell(row, column);
-            initialParentSideLength = Math.Min(parent.ActualWidth, parent.ActualHeight);
             this.parent = parent;
             Number = number;
-            this.fullSideLength = initialFullSideLength = fullSideLength;
-            maxFontSize = fullSideLength * 0.7;
-            this.repositionAnimationDurationUnit = repositionAnimationDurationUnit;
-            this.scale = scale;
-            BeginScaleAnimation(MinScale, scale, false);
-            parent.SizeChanged += Parent_SizeChanged;
+            movementDurationPerCell = Layout4MovementDurationPerCell * 4 / parent.RowDefinitions.Count;
+            AnimateScale(MinSizeScale, 1, false);
         }
 
-        private void Parent_SizeChanged(object sender, SizeChangedEventArgs e)
+        private int GetTileColorIndex(int number)
         {
-            fullSideLength = initialFullSideLength * e.NewSize.Height / initialParentSideLength;
-            maxFontSize = fullSideLength * 0.6;
-            FontSize = fontScale * maxFontSize;
-            Width = Height = fullSideLength * scale;
-            CornerRadius = new CornerRadius(Height * 0.08);
-        }
-
-        private int GetTileColorIndex(int tileValue)
-        {
-            if (tileValue == 0)
+            if (number == 0)
                 return 0;
-            else if (tileValue < 0)
-                throw new ArgumentException();
-            int index = (int)(Math.Log(Math.Abs(tileValue)) / Math.Log(2));
-            if (index >= TileColors.GetLength(0))
-                throw new ArgumentException();
-            return index;
+            return (int)(Math.Log(Math.Abs(number)) / Math.Log(2));
         }
 
         private void SetCell(int row, int column)
@@ -114,56 +98,58 @@ namespace Game_2048
             Grid.SetColumn(this, column);
         }
 
-        private void BeginScaleAnimation(double fromScale, double toScale, bool autoReverse)
+        private void AnimateScale(double fromScale, double toScale, bool autoReverse)
         {
-            double fromSideLength = fullSideLength * fromScale, toSideLength = fullSideLength * toScale;
-            Duration duration = new Duration(TimeSpan.FromMilliseconds(autoReverse ? ScaleAnimationDuration / 2 : ScaleAnimationDuration));
-            DoubleAnimation doubleAnimation = new DoubleAnimation() { From = fromSideLength, To = toSideLength, Duration = duration, EnableDependentAnimation = true }, doubleAnimation2 = new DoubleAnimation() { From = fromSideLength, To = toSideLength, Duration = duration, EnableDependentAnimation = true }, doubleAnimation3 = new DoubleAnimation() { From = fromScale * (fontScale * maxFontSize), To = toScale * (fontScale * maxFontSize), Duration = duration, EnableDependentAnimation = true };
-            Storyboard.SetTargetProperty(doubleAnimation, "Width");
-            Storyboard.SetTargetProperty(doubleAnimation2, "Height");
-            Storyboard.SetTargetProperty(doubleAnimation3, "FontSize");
-            Storyboard.SetTarget(doubleAnimation, this);
-            Storyboard.SetTarget(doubleAnimation2, this);
-            Storyboard.SetTarget(doubleAnimation3, this);
-            Storyboard storyboard = new Storyboard() { AutoReverse = autoReverse };
+            RenderTransform = new ScaleTransform { CenterX = fullSideLength / 2, CenterY = fullSideLength / 2 };
+            Duration duration = new Duration(TimeSpan.FromMilliseconds(autoReverse ? ScaleDuration / 2 : ScaleDuration));
+            DoubleAnimation doubleAnimation = new DoubleAnimation { From = fromScale, To = toScale, Duration = duration, EnableDependentAnimation = true }, doubleAnimation2 = new DoubleAnimation { From = fromScale, To = toScale, Duration = duration, EnableDependentAnimation = true };
+            Storyboard.SetTargetProperty(doubleAnimation, "ScaleX");
+            Storyboard.SetTargetProperty(doubleAnimation2, "ScaleY");
+            Storyboard.SetTarget(doubleAnimation, RenderTransform);
+            Storyboard.SetTarget(doubleAnimation2, RenderTransform);
+            Storyboard storyboard = new Storyboard { AutoReverse = autoReverse };
             storyboard.Children.Add(doubleAnimation);
             storyboard.Children.Add(doubleAnimation2);
-            storyboard.Children.Add(doubleAnimation3);
             storyboard.Begin();
         }
 
         public void RemoveSelf() => parent.Children.Remove(this);
 
-        private void MoveTo(int row, int column, Storyboard storyboard, EventHandler<object> animationCompleted)
+        private void MoveTo(int row, int column, EventHandler<object> animationCompleted)
         {
-            int rowDistance = row - Grid.GetRow(this), columnDistance = column - Grid.GetColumn(this);
-            TranslateTransform translateTransform = new TranslateTransform();
-            RenderTransform = translateTransform;
-            Duration duration = new Duration(TimeSpan.FromMilliseconds(repositionAnimationDurationUnit * Math.Max(Math.Abs(rowDistance), Math.Abs(columnDistance))));
-            DoubleAnimation doubleAnimation = new DoubleAnimation() { To = fullSideLength * columnDistance, Duration = duration, EnableDependentAnimation = true }, doubleAnimation2 = new DoubleAnimation() { To = fullSideLength * rowDistance, Duration = duration };
-            Storyboard.SetTargetProperty(doubleAnimation, "X");
-            Storyboard.SetTargetProperty(doubleAnimation2, "Y");
-            Storyboard.SetTarget(doubleAnimation, translateTransform);
-            Storyboard.SetTarget(doubleAnimation2, translateTransform);
-            storyboard.Completed += delegate
+            EventHandler<object> completed = delegate
             {
                 SetCell(row, column);
                 animationCompleted?.Invoke(null, null);
             };
-            storyboard.Children.Add(doubleAnimation);
-            storyboard.Children.Add(doubleAnimation2);
+            if (Storyboard == null)
+            {
+                completed.Invoke(null, null);
+                return;
+            }
+            RenderTransform = new TranslateTransform();
+            int rowDistance = row - Grid.GetRow(this), columnDistance = column - Grid.GetColumn(this);
+            Duration duration = new Duration(TimeSpan.FromMilliseconds(movementDurationPerCell * Math.Max(Math.Abs(rowDistance), Math.Abs(columnDistance))));
+            DoubleAnimation doubleAnimation = new DoubleAnimation { To = fullSideLength * columnDistance, Duration = duration, EnableDependentAnimation = true }, doubleAnimation2 = new DoubleAnimation { To = fullSideLength * rowDistance, Duration = duration };
+            Storyboard.SetTargetProperty(doubleAnimation, "X");
+            Storyboard.SetTargetProperty(doubleAnimation2, "Y");
+            Storyboard.SetTarget(doubleAnimation, RenderTransform);
+            Storyboard.SetTarget(doubleAnimation2, RenderTransform);
+            Storyboard.Completed += completed;
+            Storyboard.Children.Add(doubleAnimation);
+            Storyboard.Children.Add(doubleAnimation2);
         }
 
-        public void MoveTo(int row, int column, Storyboard storyboard) => MoveTo(row, column, storyboard, null);
+        public void MoveTo(int row, int column) => MoveTo(row, column, null);
 
-        public void Merge(Tile tile, Cell toCell, Storyboard storyboard)
+        public void MergeTo(Tile tile, int row, int column)
         {
-            tile.MoveTo(toCell.Row, toCell.Column, storyboard, null);
-            MoveTo(toCell.Row, toCell.Column, storyboard, delegate
+            tile.MoveTo(row, column, null);
+            MoveTo(row, column, delegate
             {
                 tile.RemoveSelf();
                 Number <<= 1;
-                BeginScaleAnimation(scale, MaxScale, true);
+                AnimateScale(1, MaxSizeScale, true);
             });
         }
     }

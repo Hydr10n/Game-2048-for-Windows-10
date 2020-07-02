@@ -18,7 +18,7 @@ namespace Game_2048
         private bool isMovementFinished = true;
         private Tile[,] tiles;
 
-        private Tile AddTile(int row, int column, int tileNumber) => new Tile(GameLayout, row, column, tileNumber, tileFullSideLength, repositionAnimationDurationUnit, TileScale);
+        private Tile AddTile(int row, int column, int tileNumber) => new Tile(GameLayout, row, column, tileNumber);
 
         private void AddRandomTile()
         {
@@ -40,18 +40,18 @@ namespace Game_2048
                     }
         }
 
-        private void MoveTile(Cell fromCell, Cell toCell, Storyboard storyboard)
+        private void MoveTile(Cell fromCell, Cell toCell)
         {
             Tile tile = tiles[fromCell.Row, fromCell.Column];
-            tile.MoveTo(toCell.Row, toCell.Column, storyboard);
+            tile.MoveTo(toCell.Row, toCell.Column);
             tiles[fromCell.Row, fromCell.Column] = null;
             tiles[toCell.Row, toCell.Column] = tile;
         }
 
-        private void MergeTiles(Cell fromCell1, Cell fromCell2, Cell toCell, Storyboard storyboard)
+        private void MergeTiles(Cell fromCell1, Cell fromCell2, Cell toCell)
         {
             Tile fromTile2 = tiles[fromCell2.Row, fromCell2.Column];
-            fromTile2.Merge(tiles[fromCell1.Row, fromCell1.Column], toCell, storyboard);
+            fromTile2.MergeTo(tiles[fromCell1.Row, fromCell1.Column], toCell.Row, toCell.Column);
             tiles[fromCell1.Row, fromCell1.Column] = null;
             tiles[fromCell2.Row, fromCell2.Column] = null;
             tiles[toCell.Row, toCell.Column] = fromTile2;
@@ -79,7 +79,7 @@ namespace Game_2048
                 {
                     if (tiles[i, j] == null)
                         return false;
-                    for (int n = 0; n < 4; n++)
+                    for (int n = 0; n < directions.GetLength(0); n++)
                     {
                         int newI = i + directions[n, 0], newJ = j + directions[n, 1];
                         if (newI >= 0 && newI < tilesCountPerSide && newJ >= 0 && newJ < tilesCountPerSide &&
@@ -114,7 +114,7 @@ namespace Game_2048
             }
             bool moved = false, won = false;
             int count = 0;
-            Storyboard storyboard = new Storyboard();
+            Tile.Storyboard = new Storyboard();
             for (int row = 0; row < tilesCountPerSide; row++)
             {
                 int next = 0;
@@ -133,11 +133,13 @@ namespace Game_2048
                                 int tileNumber = tiles[cell1.Row, cell1.Column].Number;
                                 if (tileNumber == tiles[cell2.Row, cell2.Column].Number)
                                 {
-                                    MergeTiles(cell1, cell2, RotateCell(row, next, angle), storyboard);
+                                    MergeTiles(cell1, cell2, RotateCell(row, next, angle));
                                     moved = true;
                                     a = b;
                                     tileNumber <<= 1;
                                     ViewModel.Score += tileNumber;
+                                    if (ViewModel.Score > ViewModel.BestScore)
+                                        ViewModel.BestScore = ViewModel.Score;
                                     if (tileNumber >= 2048)
                                         won = true;
                                 }
@@ -145,12 +147,12 @@ namespace Game_2048
                                 {
                                     if (a != next)
                                     {
-                                        MoveTile(cell1, RotateCell(row, next, angle), storyboard);
+                                        MoveTile(cell1, RotateCell(row, next, angle));
                                         moved = true;
                                     }
                                     if (b != next + 1)
                                     {
-                                        MoveTile(cell2, RotateCell(row, next + 1, angle), storyboard);
+                                        MoveTile(cell2, RotateCell(row, next + 1, angle));
                                         moved = true;
                                     }
                                     a = next;
@@ -166,7 +168,7 @@ namespace Game_2048
                                 next++;
                             if (a != next)
                             {
-                                MoveTile(cell1, RotateCell(row, next, angle), storyboard);
+                                MoveTile(cell1, RotateCell(row, next, angle));
                                 moved = true;
                             }
                             break;
@@ -179,23 +181,22 @@ namespace Game_2048
             }
             if (!moved)
                 return;
-            storyboard.Completed += delegate
+            Tile.Storyboard.Completed += delegate
             {
-                storyboard.Stop();
+                Tile.Storyboard.Stop();
                 isMovementFinished = true;
-                if (ViewModel.Score > ViewModel.BestScore)
-                    ViewModel.BestScore = ViewModel.Score;
                 if (won)
-                {
                     ViewModel.GameState = GameState.Won;
-                    return;
+                else
+                {
+                    if (count < tilesCountPerSide)
+                        AddRandomTile();
+                    if (count >= tilesCountPerSide - 1 && IsGameOver())
+                        ViewModel.GameState = GameState.Over;
                 }
-                if (count < tilesCountPerSide)
-                    AddRandomTile();
-                if (count >= tilesCountPerSide - 1 && IsGameOver())
-                    ViewModel.GameState = GameState.Over;
+                SaveGameProgress();
             };
-            storyboard.Begin();
+            Tile.Storyboard.Begin();
             isMovementFinished = false;
         }
 

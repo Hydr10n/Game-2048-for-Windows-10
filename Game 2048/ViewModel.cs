@@ -46,7 +46,8 @@ namespace Game_2048
         private GameState gameState = GameState.NotStarted;
         public GameState GameState
         {
-            get => gameState; set
+            get => gameState;
+            set
             {
                 gameState = value;
                 switch (gameState)
@@ -54,12 +55,12 @@ namespace Game_2048
                     case GameState.Won:
                         GameStateText = "YOU WIN!";
                         GameStateTextVisibility = Visibility.Visible;
-                        GameStateTextOpacity = 0.7;
+                        GameStateTextOpacity = 0.9;
                         break;
                     case GameState.Over:
                         GameStateText = "GAME OVER!";
                         GameStateTextVisibility = Visibility.Visible;
-                        GameStateTextOpacity = 0.7;
+                        GameStateTextOpacity = 0.9;
                         break;
                     default:
                         GameStateText = null;
