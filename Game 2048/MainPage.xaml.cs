@@ -54,7 +54,7 @@ namespace Game_2048
             float scale = (float)(Math.Min(Math.Max(0.6 * Math.Min(ActualHeight, ActualWidth), GameLayoutContainer.MinHeight), GameLayoutContainer.MaxHeight) / GameLayoutContainer.MinHeight);
             GameLayoutContainer.CenterPoint = new Vector3((float)GameLayoutContainer.ActualWidth / 2, 0, 0);
             GameLayoutContainer.Scale = new Vector3(scale, scale, 1);
-            MainContainer.Margin = new Thickness(0, 0, 0, GameLayoutContainer.ActualHeight * (scale - 1));
+            MainContainer.Margin = new Thickness { Bottom = GameLayoutContainer.ActualHeight * (scale - 1) };
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -67,7 +67,7 @@ namespace Game_2048
 
         private async void HelpButton_Click(object sender, RoutedEventArgs e) => await new HelpDialog().ShowAsync();
 
-        private void Layout_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void LayoutSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             int index = (sender as ComboBox).SelectedIndex;
             gameSaveKeysIndex = index;

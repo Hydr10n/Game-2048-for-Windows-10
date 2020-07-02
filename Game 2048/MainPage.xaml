@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
 
         <Grid Name="TitleBar" Grid.Row="0" Background="#30000000">
-            <TextBlock Text="Game 2048" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Left" TextAlignment="Center" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBlock Text="Game 2048" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
         </Grid>
 
         <Button Name="Help" Grid.Row="0" Margin="80,0,0,0" IsTabStop="False" Content="?" FontWeight="SemiBold" Width="{Binding ActualHeight, ElementName=Help}" Style="{ThemeResource ButtonRevealStyle}" Click="HelpButton_Click"/>
@@ -30,13 +30,13 @@
 
             <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal">
                 <Grid Width="110" CornerRadius="3" Background="{ThemeResource MyAcrylicBrush2}">
-                    <ComboBox Name="LayoutSelectionComboBox" RequestedTheme="Dark" Background="Transparent" PlaceholderText="Layout" PlaceholderForeground="#f9f6f2" FontSize="17" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Foreground="#f9f6f2" BorderThickness="0" FontWeight="Bold" IsTabStop="False" SelectionChanged="Layout_SelectionChanged">
+                    <ComboBox Name="LayoutSelectionComboBox" RequestedTheme="Dark" Background="Transparent" PlaceholderText="Layout" PlaceholderForeground="#f9f6f2" FontSize="17" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Foreground="#f9f6f2" BorderThickness="0" FontWeight="Bold" IsTabStop="False" SelectionChanged="LayoutSelectionComboBox_SelectionChanged">
                         <ComboBoxItem Content="4 × 4"/>
                         <ComboBoxItem Content="5 × 5"/>
                         <ComboBoxItem Content="6 × 6"/>
                     </ComboBox>
                 </Grid>
-                <Button Margin="5,0,0,0" Background="{ThemeResource MyAcrylicBrush2}" CornerRadius="3" Content="New Game" Width="110" Style="{ThemeResource ButtonRevealStyle}" FontSize="17" VerticalAlignment="Stretch" Foreground="#f9f6f2" FontWeight="Bold" IsTapEnabled="False" IsEnabled="{Binding Path=LayoutReady}" Click="NewGameButton_Click"/>
+                <Button Margin="5,0,0,0" Background="{ThemeResource MyAcrylicBrush2}" CornerRadius="3" Content="New Game" Width="110" Style="{ThemeResource ButtonRevealStyle}" FontSize="17" VerticalAlignment="Stretch" Foreground="#f9f6f2" FontWeight="Bold" IsTabStop="False" IsEnabled="{Binding Path=LayoutReady}" Click="NewGameButton_Click"/>
             </StackPanel>
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
