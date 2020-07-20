@@ -5,21 +5,64 @@
     xmlns:local="using:Game_2048"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"
-    Background="{ThemeResource MyAcrylicBrush}" Loaded="Page_Loaded" SizeChanged="Page_SizeChanged">
+    Background="{ThemeResource MyAcrylicBrush}" SizeChanged="Page_SizeChanged" Loaded="Page_Loaded">
+    <Page.Resources>
+        <local:BoolNegationConverter x:Key="BoolNegationConverter"/>
+    </Page.Resources>
+    <Page.DataContext>
+        <local:ViewModelEx/>
+    </Page.DataContext>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
 
-        <Grid Name="TitleBar" Grid.Row="0" Background="#30000000">
-            <TextBlock Text="Game 2048" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
-        </Grid>
+        <StackPanel Name="TitleBar" Grid.Row="0" Height="32" Padding="12,0,0,0" Background="Transparent" Orientation="Horizontal">
+            <FontIcon Margin="0,0,3,0" FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE7FC;"/>
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="2048" VerticalAlignment="Center"/>
+        </StackPanel>
 
-        <Button Name="Help" Grid.Row="0" Margin="80,0,0,0" IsTabStop="False" Content="?" FontWeight="SemiBold" Width="{Binding ActualHeight, ElementName=Help}" Style="{ThemeResource ButtonRevealStyle}" Click="HelpButton_Click"/>
+        <Button Name="SettingsButton" IsTabStop="False" Grid.Row="0" Style="{ThemeResource ButtonRevealStyle}" Margin="70,0,0,0" Padding="3" CornerRadius="100">
+            <SymbolIcon Symbol="Setting"/>
+            <Button.Flyout>
+                <Flyout>
+                    <Flyout.FlyoutPresenterStyle>
+                        <Style TargetType="FlyoutPresenter">
+                            <Setter Property="CornerRadius" Value="4"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled"/>
+                            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+                        </Style>
+                    </Flyout.FlyoutPresenterStyle>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Controller Settings"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,15,3" VerticalAlignment="Center" Text="Vibration Intensity"/>
+                            <Slider Name="GamepadVibrationIntensitySlider" Width="100" StepFrequency="10" SmallChange="10" ValueChanged="GamepadVibrationIntensitySlider_ValueChanged"/>
+                        </StackPanel>
 
-        <Grid Name="MainContainer" Grid.Row="1" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,20,0,0" Text="How to Play"/>
+                        <TextBlock TextWrapping="Wrap">
+                            Use arrow keys/D-pad or swipe on screen to move tiles. When two tiles with the same number touch, they merge into one. Get the number "2048" to win!
+                        </TextBlock>
+
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,20,0,0" Text="About"/>
+                        <TextBlock>
+                            Version: <Run Text="{x:Bind Version}"/>
+                            <LineBreak/>
+                            © 2020 Hydr10n. All rights reserved.
+                            <LineBreak/>
+                            Source code: <Hyperlink NavigateUri="https://github.com/Hydr10n">GitHub</Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                </Flyout>
+            </Button.Flyout>
+        </Button>
+
+        <Grid Name="MainPanel" Grid.Row="1" VerticalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="15"/>
@@ -29,36 +72,62 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal">
-                <Grid Width="110" CornerRadius="3" Background="{ThemeResource MyAcrylicBrush2}">
-                    <ComboBox Name="LayoutSelectionComboBox" RequestedTheme="Dark" Background="Transparent" PlaceholderText="Layout" PlaceholderForeground="#f9f6f2" FontSize="17" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Foreground="#f9f6f2" BorderThickness="0" FontWeight="Bold" IsTabStop="False" SelectionChanged="LayoutSelectionComboBox_SelectionChanged">
-                        <ComboBoxItem Content="4 × 4"/>
-                        <ComboBoxItem Content="5 × 5"/>
-                        <ComboBoxItem Content="6 × 6"/>
-                    </ComboBox>
-                </Grid>
-                <Button Margin="5,0,0,0" Background="{ThemeResource MyAcrylicBrush2}" CornerRadius="3" Content="New Game" Width="110" Style="{ThemeResource ButtonRevealStyle}" FontSize="17" VerticalAlignment="Stretch" Foreground="#f9f6f2" FontWeight="Bold" IsTabStop="False" IsEnabled="{Binding Path=LayoutReady}" Click="NewGameButton_Click"/>
+                <muxc:DropDownButton Name="LayoutOptionsDropDownButton" IsTabStop="False" Width="125" Margin="0,0,5,0" Style="{ThemeResource DropDownButtonRevealStyle}" Background="{ThemeResource MyAcrylicBrush2}" CornerRadius="3" Foreground="#f9f6f2">
+                    <StackPanel Orientation="Horizontal">
+                        <FontIcon Margin="0,0,3,0" FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="25" Glyph="&#xEDE3;"/>
+                        <TextBlock FontSize="17" FontWeight="Bold" Text="Layout"/>
+                    </StackPanel>
+                    <muxc:DropDownButton.Flyout>
+                        <Flyout x:Name="LayoutOptionsFlyout" Placement="Bottom">
+                            <Flyout.FlyoutPresenterStyle>
+                                <Style TargetType="FlyoutPresenter">
+                                    <Setter Property="CornerRadius" Value="4"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                </Style>
+                            </Flyout.FlyoutPresenterStyle>
+                            <StackPanel Name="LayoutOptionsPanel">
+                                <RadioButton Content="4 × 4" Checked="LayoutOptionsRadioButton_Checked"/>
+                                <RadioButton Content="5 × 5" Checked="LayoutOptionsRadioButton_Checked"/>
+                                <RadioButton Content="6 × 6" Checked="LayoutOptionsRadioButton_Checked"/>
+                            </StackPanel>
+                        </Flyout>
+                    </muxc:DropDownButton.Flyout>
+                </muxc:DropDownButton>
+
+                <Button Name="NewGameButton" IsTabStop="False" Width="125" Padding="0" Style="{ThemeResource ButtonRevealStyle}" Background="{ThemeResource MyAcrylicBrush2}" CornerRadius="3" VerticalAlignment="Stretch" Foreground="#f9f6f2" Click="NewGameButton_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Margin="0,0,3,0">
+                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="25" Glyph="&#xE75D;" Visibility="{Binding IsGamepadActive, Converter={StaticResource BoolNegationConverter}}"/>
+                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" FontSize="25" Glyph="&#xF093;" Visibility="{Binding IsGamepadActive}"/>
+                        </Grid>
+                        <TextBlock VerticalAlignment="Center" FontSize="17" FontWeight="Bold" Text="New Game"/>
+                    </StackPanel>
+                </Button>
             </StackPanel>
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                <StackPanel MinWidth="70" Background="{ThemeResource MyAcrylicBrush3}" CornerRadius="3" Orientation="Vertical">
+                <StackPanel MinWidth="70" Margin="0,0,5,0" Background="{ThemeResource MyAcrylicBrush3}" CornerRadius="3" Orientation="Vertical">
                     <TextBlock Text="SCORE" FontSize="17" Foreground="#eee4da" FontWeight="Bold" TextAlignment="Center"/>
-                    <TextBlock Text="{Binding Path=Score}" Margin="0,-3,0,0" Foreground="White" FontSize="21" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="{Binding Score}" Margin="5,-3,5,0" Foreground="White" FontSize="21" FontWeight="Bold" TextAlignment="Center"/>
                 </StackPanel>
-                <StackPanel MinWidth="70" Margin="5,0,0,0" Background="{ThemeResource MyAcrylicBrush3}" CornerRadius="3" Orientation="Vertical">
+
+                <StackPanel MinWidth="70" Background="{ThemeResource MyAcrylicBrush3}" CornerRadius="3" Orientation="Vertical">
                     <TextBlock Text="BEST" FontSize="17" Foreground="#eee4da" FontWeight="Bold" TextAlignment="Center"/>
-                    <TextBlock Text="{Binding Path=BestScore}" Margin="0,-3,0,0" Foreground="White" FontSize="21" FontWeight="Bold" TextAlignment="Center"/>
+                    <TextBlock Text="{Binding BestScore}" Margin="5,-3,5,0" Foreground="White" FontSize="21" FontWeight="Bold" TextAlignment="Center"/>
                 </StackPanel>
             </StackPanel>
 
-            <Grid Name="GameLayoutContainer" Grid.Row="4" MinWidth="{Binding MinHeight, RelativeSource={RelativeSource Mode=Self}}" MinHeight="330" MaxWidth="{Binding MaxHeight, RelativeSource={RelativeSource Mode=Self}}" MaxHeight="420" Width="{Binding Height, RelativeSource={RelativeSource Mode=Self}}" Height="{Binding MinHeight, RelativeSource={RelativeSource Mode=Self}}" CornerRadius="8">
-                <Grid Name="GameLayout" Background="{ThemeResource MyAcrylicBrush4}" ManipulationMode="TranslateX,TranslateY,TranslateInertia" ManipulationDelta="GameLayout_ManipulationDelta"/>
+            <Grid Name="GameLayoutPanel" Grid.Row="4" MinWidth="{Binding MinHeight, RelativeSource={RelativeSource Mode=Self}}" MinHeight="330" MaxWidth="{Binding MaxHeight, RelativeSource={RelativeSource Mode=Self}}" MaxHeight="420" Width="{Binding Height, RelativeSource={RelativeSource Mode=Self}}" Height="{Binding MinHeight, RelativeSource={RelativeSource Mode=Self}}" CornerRadius="8">
+                <Grid Name="GameLayout" RequestedTheme="Dark" Background="{ThemeResource MyAcrylicBrush4}" ManipulationMode="TranslateX,TranslateY,TranslateInertia" ManipulationDelta="GameLayout_ManipulationDelta"/>
 
-                <Border Visibility="{Binding Path=GameStateTextVisibility}" Opacity="{Binding Path=GameStateTextOpacity}" Background="#80eee4da">
+                <Border Visibility="{Binding GameStateTextVisibility}" Opacity="{Binding GameStateTextOpacity}" Background="#80eee4da">
                     <Border.OpacityTransition>
                         <ScalarTransition Duration="0:0:1.5"/>
                     </Border.OpacityTransition>
-                    <TextBlock Name="GameStateText" Text="{Binding Path=GameStateText}" Foreground="#776e65" FontSize="50" FontWeight="Bold" TextAlignment="Center" VerticalAlignment="Center">
-                    </TextBlock>
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="YOU WIN!" Visibility="{Binding IsVictoryWhenGameOver}" Foreground="#776e65" FontSize="50" FontWeight="Bold"/>
+                        <TextBlock Text="GAME OVER!" Visibility="{Binding IsVictoryWhenGameOver, Converter={StaticResource BoolNegationConverter}}" Foreground="#776e65" FontSize="50" FontWeight="Bold"/>
+                    </Grid>
                 </Border>
             </Grid>
         </Grid>

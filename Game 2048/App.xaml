@@ -6,8 +6,16 @@
     RequestedTheme="Light">
     <Application.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls"/>
+            </ResourceDictionary.MergedDictionaries>
+            
             <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
+                <ResourceDictionary x:Key="Default">
+                    <ResourceDictionary.MergedDictionaries>
+                        <ColorPaletteResources Accent="#0063b1"/>
+                    </ResourceDictionary.MergedDictionaries>
+
                     <AcrylicBrush x:Key="MyAcrylicBrush" BackgroundSource="HostBackdrop" FallbackColor="#faf8ef" TintColor="#faf8ef" TintOpacity="0.7"/>
                     <AcrylicBrush x:Key="MyAcrylicBrush2" BackgroundSource="HostBackdrop" FallbackColor="#8f7a66" TintColor="#8f7a66" TintOpacity="0.7"/>
                     <AcrylicBrush x:Key="MyAcrylicBrush3" BackgroundSource="HostBackdrop" FallbackColor="#bbada0" TintColor="#bbada0" TintOpacity="0.7"/>

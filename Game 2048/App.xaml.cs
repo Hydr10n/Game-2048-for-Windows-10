@@ -20,7 +20,7 @@ namespace Game_2048
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
 
-        public const int MinWidth = 370, MinHeight = 500;
+        public const int MinWindowWidth = 370, MinWindowHeight = 500;
 
         public App()
         {
@@ -35,10 +35,8 @@ namespace Game_2048
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            Frame rootFrame = Window.Current.Content as Frame;
-
             const string AppFirstLaunchDataKey = "FirstLaunch";
-            var size = new Size(MinWidth, MinHeight);
+            var size = new Size(MinWindowWidth, MinWindowHeight);
             var currentView = ApplicationView.GetForCurrentView();
             currentView.SetPreferredMinSize(size);
             var localSettings = ApplicationData.Current.LocalSettings;
@@ -48,9 +46,11 @@ namespace Game_2048
                 localSettings.Values[AppFirstLaunchDataKey] = true;
             }
 
+            FocusVisualKind = FocusVisualKind.Reveal;
+
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
-            if (rootFrame == null)
+            if (!(Window.Current.Content is Frame rootFrame))
             {
                 // Create a Frame to act as the navigation context and navigate to the first page
                 rootFrame = new Frame();

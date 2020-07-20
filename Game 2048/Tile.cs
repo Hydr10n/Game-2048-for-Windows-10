@@ -19,10 +19,10 @@ namespace Game_2048
         }
     }
 
-    class Tile : Button
+    sealed class Tile : Button
     {
         private const int TileForegroundIndex = 0, TileBackgroundIndex = 1;
-        private const double MinSizeScale = 0.5, MaxSizeScale = 1.2, ScaleDuration = 150, Layout4MovementDurationPerCell = 40;
+        private const double MinSizeScale = 0.5, MaxSizeScale = 1.2, ScaleDuration = 150, Layout4MovementDurationPerCell = 50;
 
         private static readonly Color[,] TileColors = new Color[,] {    // [0]: text color; [1]: background color
             { new Color(), Color.FromArgb(0xff, 0xcd, 0xc1, 0xb4) },                               // empty
@@ -41,6 +41,7 @@ namespace Game_2048
 
         private readonly double fullSideLength, movementDurationPerCell;
         private readonly Grid parent;
+        private readonly TextBlock textBlock;
 
         private int number;
         public int Number
@@ -49,37 +50,38 @@ namespace Game_2048
             private set
             {
                 number = value;
-                if (value != 0)
-                    Content = value;
-                FontSize = fullSideLength * 0.6;
-                if (value > 1000)
-                    FontSize *= 0.55;
-                else if (value > 100)
-                    FontSize *= 0.75;
-                int tileColorIndex = GetTileColorIndex(Number);
+                if (textBlock != null)
+                    textBlock.Text = value.ToString();
+                int tileColorIndex = GetTileColorIndex(value);
                 Background = new SolidColorBrush(TileColors[tileColorIndex, TileBackgroundIndex]);
                 Foreground = new SolidColorBrush(TileColors[tileColorIndex, TileForegroundIndex]);
             }
         }
 
+        private Cell cell;
+
         public static Storyboard Storyboard { get; set; }
 
         public Tile(Grid parent, int row, int column, int number)
         {
-            RequestedTheme = ElementTheme.Dark;
             Style = (Style)Resources["ButtonRevealStyle"];
             Opacity = 0.85;
             IsTabStop = false;
-            FontWeight = FontWeights.Bold;
             HorizontalAlignment = HorizontalAlignment.Center;
             VerticalAlignment = VerticalAlignment.Center;
             Padding = new Thickness();
             fullSideLength = parent.RowDefinitions[0].Height.Value;
             Width = Height = fullSideLength - parent.Padding.Top * 2;
             CornerRadius = new CornerRadius(fullSideLength * 0.07);
+            if (number != 0)
+            {
+                textBlock = new TextBlock() { FontSize = fullSideLength * 0.6, FontWeight = FontWeights.Bold, };
+                Content = new Viewbox() { Child = textBlock };
+            }
             parent.Children.Add(this);
             SetCell(row, column);
             this.parent = parent;
+            cell = new Cell(row, column);
             Number = number;
             movementDurationPerCell = Layout4MovementDurationPerCell * 4 / parent.RowDefinitions.Count;
             AnimateScale(MinSizeScale, 1, false);
@@ -117,25 +119,20 @@ namespace Game_2048
 
         private void MoveTo(int row, int column, EventHandler<object> animationCompleted)
         {
-            EventHandler<object> completed = delegate
-            {
-                SetCell(row, column);
-                animationCompleted?.Invoke(null, null);
-            };
-            if (Storyboard == null)
-            {
-                completed.Invoke(null, null);
-                return;
-            }
             RenderTransform = new TranslateTransform();
-            int rowDistance = row - Grid.GetRow(this), columnDistance = column - Grid.GetColumn(this);
+            int rowDistance = row - cell.Row, columnDistance = column - cell.Column;
+            cell = new Cell(row, column);
             Duration duration = new Duration(TimeSpan.FromMilliseconds(movementDurationPerCell * Math.Max(Math.Abs(rowDistance), Math.Abs(columnDistance))));
             DoubleAnimation doubleAnimation = new DoubleAnimation { To = fullSideLength * columnDistance, Duration = duration, EnableDependentAnimation = true }, doubleAnimation2 = new DoubleAnimation { To = fullSideLength * rowDistance, Duration = duration };
             Storyboard.SetTargetProperty(doubleAnimation, "X");
             Storyboard.SetTargetProperty(doubleAnimation2, "Y");
             Storyboard.SetTarget(doubleAnimation, RenderTransform);
             Storyboard.SetTarget(doubleAnimation2, RenderTransform);
-            Storyboard.Completed += completed;
+            Storyboard.Completed += delegate
+            {
+                SetCell(row, column);
+                animationCompleted?.Invoke(null, null);
+            };
             Storyboard.Children.Add(doubleAnimation);
             Storyboard.Children.Add(doubleAnimation2);
         }
@@ -144,11 +141,12 @@ namespace Game_2048
 
         public void MergeTo(Tile tile, int row, int column)
         {
+            number <<= 1;
             tile.MoveTo(row, column, null);
             MoveTo(row, column, delegate
             {
                 tile.RemoveSelf();
-                Number <<= 1;
+                Number = number;
                 AnimateScale(1, MaxSizeScale, true);
             });
         }

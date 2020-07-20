@@ -10,7 +10,7 @@
   <Identity
     Name="ed4e0fa6-cdbf-48ce-9ebe-b2e25c073de2"
     Publisher="CN=Hydr10n"
-    Version="1.0.1.0" />
+    Version="1.0.2.0" />
 
   <mp:PhoneIdentity PhoneProductId="ed4e0fa6-cdbf-48ce-9ebe-b2e25c073de2" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
