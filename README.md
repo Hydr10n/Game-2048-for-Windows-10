@@ -9,6 +9,6 @@ Use arrow keys/D-pad or swipe on screen to move tiles. When two tiles with the s
 * Microsoft Visual Studio 2019 IDE with Universal Windows Platform development workload installed
 * Microsoft Windows 10 SDK (10.0.17763.0)
 
-![image](Snapshots/Game-2048-with-Fluent-Design.gif)
+<img src="Snapshots/Game-2048-with-Fluent-Design.gif" width=500/>
 
-![image](Snapshots/Game-Settings.png)
+<img src="Snapshots/Game-Settings.png" width=370/>
