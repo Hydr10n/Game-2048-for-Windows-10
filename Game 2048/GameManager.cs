@@ -1,5 +1,6 @@
 ﻿using Hydr10n.Utils;
 using System;
+using System.ComponentModel;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
@@ -10,6 +11,7 @@ namespace Game_2048
 
     sealed class GameManager
     {
+        private const int MinTilesCountPerSide = 4;
         private const double GameLayoutPaddingScale = 0.06;
 
         private readonly Grid GameLayout;
@@ -138,7 +140,6 @@ namespace Game_2048
         {
             if (!isMovementFinished || ViewModel.GameState != GameState.Started)
                 return;
-            Tile.Storyboard = new Storyboard();
             int angle;
             switch (direction)
             {
@@ -155,8 +156,9 @@ namespace Game_2048
                     angle = 270;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidEnumArgumentException();
             }
+            Tile.Storyboard = new Storyboard();
             bool moved = false, won = false, merged = false;
             int count = 0;
             for (int row = 0; row < tilesCountPerSide; row++)
@@ -248,7 +250,7 @@ namespace Game_2048
 
         public void SetGameLayout(int gameLayoutSelectedIndex)
         {
-            tilesCountPerSide = gameLayoutSelectedIndex + 4;
+            tilesCountPerSide = gameLayoutSelectedIndex + MinTilesCountPerSide;
             ViewModel.GameState = GameState.NotStarted;
             GameLayout.Children.Clear();
             double tileFullSideLength = GameLayout.ActualHeight / (tilesCountPerSide + GameLayoutPaddingScale * 2);

@@ -69,7 +69,7 @@ namespace Game_2048
             IsTabStop = false;
             HorizontalAlignment = HorizontalAlignment.Center;
             VerticalAlignment = VerticalAlignment.Center;
-            Padding = new Thickness();
+            Padding = new Thickness(0, 0, 0, 6);
             fullSideLength = parent.RowDefinitions[0].Height.Value;
             Width = Height = fullSideLength - parent.Padding.Top * 2;
             CornerRadius = new CornerRadius(fullSideLength * 0.07);
@@ -102,7 +102,7 @@ namespace Game_2048
 
         private void AnimateScale(double fromScale, double toScale, bool autoReverse)
         {
-            RenderTransform = new ScaleTransform { CenterX = fullSideLength / 2, CenterY = fullSideLength / 2 };
+            RenderTransform = new ScaleTransform { CenterX = Width / 2, CenterY = Height / 2 };
             Duration duration = new Duration(TimeSpan.FromMilliseconds(autoReverse ? ScaleDuration / 2 : ScaleDuration));
             DoubleAnimation doubleAnimation = new DoubleAnimation { From = fromScale, To = toScale, Duration = duration, EnableDependentAnimation = true }, doubleAnimation2 = new DoubleAnimation { From = fromScale, To = toScale, Duration = duration, EnableDependentAnimation = true };
             Storyboard.SetTargetProperty(doubleAnimation, "ScaleX");
