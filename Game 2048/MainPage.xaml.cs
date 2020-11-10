@@ -1,6 +1,6 @@
 ﻿/*
  * Project: Game 2048
- * Last Modified: 2020/09/04
+ * Last Modified: 2020/11/10
  * 
  * Copyright (C) 2020 Programmer-Yang_Xun@outlook.com. All Rights Reserved.
  * Welcome to visit https://GitHub.com/Hydr10n
@@ -66,16 +66,19 @@ namespace Game_2048
         {
             get
             {
-                double data = AppData<double>.Load(nameof(GamepadVibrationIntensity), out bool hasKey);
+                AppData.Load(nameof(GamepadVibrationIntensity), out double data, out bool hasKey);
                 return hasKey ? data : 50;
             }
-            set => AppData<double>.Save(nameof(GamepadVibrationIntensity), value);
+            set => AppData.Save(nameof(GamepadVibrationIntensity), value);
         }
 
         private int GameLayoutSelectedIndex
         {
-            get => AppData<int>.Load(nameof(GameLayoutSelectedIndex), out _);
-            set => AppData<int>.Save(nameof(GameLayoutSelectedIndex), value);
+            get {
+                AppData.Load(nameof(GameLayoutSelectedIndex), out int data, out _);
+                return data;
+            }
+            set => AppData.Save(nameof(GameLayoutSelectedIndex), value);
         }
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)

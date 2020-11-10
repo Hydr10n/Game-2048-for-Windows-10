@@ -6,24 +6,24 @@ namespace Hydr10n
 {
     namespace Utils
     {
-        static class AppData<T>
+        static class AppData
         {
             private static readonly IPropertySet localData = ApplicationData.Current.RoamingSettings.Values;
 
-            public static void Save(string key, T data) => localData[key] = data;
+            public static void Save<T>(string key, T data) => localData[key] = data;
 
-            public static T Load(string key, out bool hasKey)
+            public static void Load<T>(string key, out T data, out bool hasKey)
             {
-                object data = localData[key];
-                return (hasKey = data != null) ? (T)data : default;
+                object dat = localData[key];
+                data = (hasKey = dat != null) ? (T)dat : default;
             }
         }
 
-        static class AppData2D<T> where T : struct, IConvertible
+        static class AppData2D
         {
             private const char RowDelimiter = ';', ColumnDelimiter = ',';
 
-            public static void Save(string key, T[,] data)
+            public static void Save<T>(string key, T[,] data) where T : struct, IConvertible
             {
                 string str = "";
                 if (data != null)
@@ -36,29 +36,29 @@ namespace Hydr10n
                         str += i == length1D - 1 ? "" : RowDelimiter.ToString();
                     }
                 }
-                AppData<string>.Save(key, str);
+                AppData.Save(key, str);
             }
 
-            public static T[][] Load(string key, out bool hasKey)
+            public static void Load<T>(string key, out T[][] data, out bool hasKey) where T : struct, IConvertible
             {
-                string rawData = AppData<string>.Load(key, out hasKey)?.ToString();
+                data = null;
+                AppData.Load(key, out string rawData, out hasKey);
                 if (!hasKey || rawData.Trim() == "")
-                    return null;
-                T[][] data = null;
+                    return;
                 try
                 {
                     string[] strs = rawData.Split(RowDelimiter);
-                    data = new T[strs.Length][];
+                    T[][] dat = new T[strs.Length][];
                     for (int i = 0; i < strs.Length; i++)
                     {
                         string[] temp = strs[i].Split(ColumnDelimiter);
-                        data[i] = new T[temp.Length];
+                        dat[i] = new T[temp.Length];
                         for (int j = 0; j < temp.Length; j++)
-                            data[i][j] = (T)Convert.ChangeType(temp[j], typeof(T));
+                            dat[i][j] = (T)Convert.ChangeType(temp[j], typeof(T));
                     }
+                    data = dat;
                 }
                 catch { }
-                return data;
             }
         }
     }

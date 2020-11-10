@@ -44,16 +44,18 @@ namespace Game_2048
                         if (tiles[i, j] != null)
                             tilesNumbers[i, j] = tiles[i, j].Number;
             }
-            AppData<int>.Save(GameSaveKeyScore, score);
-            AppData<int>.Save(GameSaveKeyBestScore, ViewModel.BestScore);
-            AppData2D<int>.Save(GameSaveKeyTiles, tilesNumbers);
+            AppData.Save(GameSaveKeyScore, score);
+            AppData.Save(GameSaveKeyBestScore, ViewModel.BestScore);
+            AppData2D.Save(GameSaveKeyTiles, tilesNumbers);
         }
 
         private bool LoadGameProgress()
         {
-            ViewModel.Score = AppData<int>.Load(GameSaveKeyScore, out _);
-            ViewModel.BestScore = AppData<int>.Load(GameSaveKeyBestScore, out _);
-            int[][] tilesNumbers = AppData2D<int>.Load(GameSaveKeyTiles, out _);
+            AppData.Load(GameSaveKeyScore, out int score, out _);
+            ViewModel.Score = score;
+            AppData.Load(GameSaveKeyBestScore, out int bestScore, out _);
+            ViewModel.BestScore = bestScore;
+            AppData2D.Load(GameSaveKeyTiles, out int[][] tilesNumbers, out _);
             if (tilesNumbers != null)
                 for (int i = 0; i < tilesCountPerSide; i++)
                     for (int j = 0; j < tilesCountPerSide; j++)
@@ -143,20 +145,11 @@ namespace Game_2048
             int angle;
             switch (direction)
             {
-                case Direction.Left:
-                    angle = 0;
-                    break;
-                case Direction.Up:
-                    angle = 90;
-                    break;
-                case Direction.Right:
-                    angle = 180;
-                    break;
-                case Direction.Down:
-                    angle = 270;
-                    break;
-                default:
-                    throw new InvalidEnumArgumentException();
+                case Direction.Left: angle = 0; break;
+                case Direction.Up: angle = 90; break;
+                case Direction.Right: angle = 180; break;
+                case Direction.Down: angle = 270; break;
+                default: throw new InvalidEnumArgumentException();
             }
             Tile.Storyboard = new Storyboard();
             bool moved = false, won = false, merged = false;
