@@ -74,7 +74,8 @@ namespace Game_2048
 
         private int GameLayoutSelectedIndex
         {
-            get {
+            get
+            {
                 AppData.Load(nameof(GameLayoutSelectedIndex), out int data, out _);
                 return data;
             }
