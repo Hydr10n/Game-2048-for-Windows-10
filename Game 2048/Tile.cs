@@ -40,7 +40,6 @@ namespace Game_2048
         };
 
         private readonly double fullSideLength, movementDurationPerCell;
-        private readonly Grid parent;
         private readonly TextBlock textBlock;
 
         private int number;
@@ -80,7 +79,6 @@ namespace Game_2048
             }
             parent.Children.Add(this);
             SetCell(row, column);
-            this.parent = parent;
             cell = new Cell(row, column);
             Number = number;
             movementDurationPerCell = Layout4MovementDurationPerCell * 4 / parent.RowDefinitions.Count;
@@ -115,7 +113,7 @@ namespace Game_2048
             storyboard.Begin();
         }
 
-        public void RemoveSelf() => parent.Children.Remove(this);
+        public void RemoveSelf() => (Parent as Panel).Children.Remove(this);
 
         private void MoveTo(int row, int column, EventHandler<object> animationCompleted)
         {
