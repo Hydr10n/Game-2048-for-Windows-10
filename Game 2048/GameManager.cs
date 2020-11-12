@@ -1,5 +1,5 @@
 ﻿using Hydr10n.Collections;
-using Hydr10n.Utils;
+using Hydr10n.DataUtils;
 using System;
 using System.ComponentModel;
 using Windows.UI.Xaml;

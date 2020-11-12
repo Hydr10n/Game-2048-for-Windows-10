@@ -6,7 +6,7 @@
  * Welcome to visit https://GitHub.com/Hydr10n
  */
 
-using Hydr10n.Utils;
+using Hydr10n.DataUtils;
 using System;
 using System.Numerics;
 using Windows.ApplicationModel;

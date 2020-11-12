@@ -4,7 +4,7 @@ using Windows.Storage;
 
 namespace Hydr10n
 {
-    namespace Utils
+    namespace DataUtils
     {
         static class AppData
         {
