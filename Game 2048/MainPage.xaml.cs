@@ -1,9 +1,8 @@
 ﻿/*
  * Project: Game 2048
- * Last Modified: 2020/11/10
+ * Last Modified: 2020/11/12
  * 
- * Copyright (C) 2020 Programmer-Yang_Xun@outlook.com. All Rights Reserved.
- * Welcome to visit https://GitHub.com/Hydr10n
+ * Copyright (C) 2020 Hydr10n@GitHub. All Rights Reserved.
  */
 
 using Hydr10n.DataUtils;

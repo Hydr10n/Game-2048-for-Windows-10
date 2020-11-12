@@ -35,19 +35,19 @@ namespace Game_2048
         private void SaveGameProgress(bool reset)
         {
             int score = 0;
-            SquareArray<int> numbers = null;
+            SquareArray<int> squareArray = null;
             if (!reset)
             {
                 score = ViewModel.Score;
-                numbers = new SquareArray<int>(tiles.SideLength);
+                squareArray = new SquareArray<int>(tiles.SideLength);
                 for (int i = 0; i < tiles.SideLength; i++)
                     for (int j = 0; j < tiles.SideLength; j++)
                         if (tiles[i, j] != null)
-                            numbers[i, j] = tiles[i, j].Number;
+                            squareArray[i, j] = tiles[i, j].Number;
             }
             AppData.Save(GameSaveKeyScore, score);
             AppData.Save(GameSaveKeyBestScore, ViewModel.BestScore);
-            AppData2D.Save(GameSaveKeyTiles, numbers?.Array);
+            AppData2D.Save(GameSaveKeyTiles, squareArray?.ToArray());
         }
 
         private bool LoadGameProgress()

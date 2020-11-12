@@ -55,7 +55,7 @@
                             <LineBreak/>
                             © 2020 Hydr10n. All rights reserved.
                             <LineBreak/>
-                            Source code: <Hyperlink NavigateUri="https://github.com/Hydr10n">GitHub</Hyperlink>
+                            Source code: <Hyperlink NavigateUri="https://github.com/Hydr10n/Game-2048-for-Windows-10">GitHub</Hyperlink>
                         </TextBlock>
                     </StackPanel>
                 </Flyout>
