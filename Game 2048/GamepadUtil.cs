@@ -11,7 +11,7 @@ namespace Hydr10n
         class GamepadUtil
         {
             private static readonly HashSet<Gamepad> gamepads = new HashSet<Gamepad>();
-            public static IReadOnlyCollection<Gamepad> Gamepads { get => gamepads; }
+            public static IReadOnlyCollection<Gamepad> Gamepads => gamepads;
             public static event EventHandler<Gamepad> GamepadAdded, GamepadRemoved;
 
             static GamepadUtil()

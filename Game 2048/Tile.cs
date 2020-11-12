@@ -17,6 +17,26 @@ namespace Game_2048
             Row = row;
             Column = column;
         }
+
+        public static bool operator ==(Cell a, Cell b)
+        {
+            if (a == null && b == null)
+                return true;
+            if (a == null || b == null)
+                return false;
+            return a.Row == b.Row && a.Column == b.Column;
+        }
+
+        public static bool operator !=(Cell a, Cell b) => !(a == b);
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+                return false;
+            return this == (Cell)obj;
+        }
+
+        public override int GetHashCode() => base.GetHashCode();
     }
 
     sealed class Tile : Button

@@ -1,4 +1,5 @@
-﻿using Hydr10n.Utils;
+﻿using Hydr10n.Collections;
+using Hydr10n.Utils;
 using System;
 using System.ComponentModel;
 using Windows.UI.Xaml;
@@ -19,11 +20,11 @@ namespace Game_2048
 
         private bool isLayoutReady, isMovementFinished = true;
         private int tilesCountPerSide;
-        private Tile[,] tiles;
+        private SquareArray<Tile> tiles;
 
-        private string GameSaveKeyScore { get => nameof(GameSaveKeyScore) + tilesCountPerSide; }
-        private string GameSaveKeyBestScore { get => nameof(GameSaveKeyBestScore) + tilesCountPerSide; }
-        private string GameSaveKeyTiles { get => nameof(GameSaveKeyTiles) + tilesCountPerSide; }
+        private string GameSaveKeyScore => nameof(GameSaveKeyScore) + tilesCountPerSide;
+        private string GameSaveKeyBestScore => nameof(GameSaveKeyBestScore) + tilesCountPerSide;
+        private string GameSaveKeyTiles => nameof(GameSaveKeyTiles) + tilesCountPerSide;
 
         public GameManager(Grid gameLayout, ViewModel viewModel)
         {
@@ -34,19 +35,19 @@ namespace Game_2048
         private void SaveGameProgress(bool reset)
         {
             int score = 0;
-            int[,] tilesNumbers = null;
+            SquareArray<int> numbers = null;
             if (!reset)
             {
                 score = ViewModel.Score;
-                tilesNumbers = new int[tilesCountPerSide, tilesCountPerSide];
-                for (int i = 0; i < tilesCountPerSide; i++)
-                    for (int j = 0; j < tilesCountPerSide; j++)
+                numbers = new SquareArray<int>(tiles.SideLength);
+                for (int i = 0; i < tiles.SideLength; i++)
+                    for (int j = 0; j < tiles.SideLength; j++)
                         if (tiles[i, j] != null)
-                            tilesNumbers[i, j] = tiles[i, j].Number;
+                            numbers[i, j] = tiles[i, j].Number;
             }
             AppData.Save(GameSaveKeyScore, score);
             AppData.Save(GameSaveKeyBestScore, ViewModel.BestScore);
-            AppData2D.Save(GameSaveKeyTiles, tilesNumbers);
+            AppData2D.Save(GameSaveKeyTiles, numbers?.Array);
         }
 
         private bool LoadGameProgress()
@@ -55,13 +56,13 @@ namespace Game_2048
             ViewModel.Score = score;
             AppData.Load(GameSaveKeyBestScore, out int bestScore, out _);
             ViewModel.BestScore = bestScore;
-            AppData2D.Load(GameSaveKeyTiles, out int[][] tilesNumbers, out _);
-            if (tilesNumbers != null)
-                for (int i = 0; i < tilesCountPerSide; i++)
-                    for (int j = 0; j < tilesCountPerSide; j++)
-                        if (tilesNumbers[i][j] != 0)
-                            tiles[i, j] = AddTile(i, j, tilesNumbers[i][j]);
-            return tilesNumbers != null;
+            AppData2D.Load(GameSaveKeyTiles, out int[][] numbers, out _);
+            if (numbers != null)
+                for (int i = 0; i < tiles.SideLength; i++)
+                    for (int j = 0; j < tiles.SideLength; j++)
+                        if (numbers[i][j] != 0)
+                            tiles[i, j] = AddTile(i, j, numbers[i][j]);
+            return numbers != null;
         }
 
         private Tile AddTile(int row, int column, int tileNumber) => new Tile(GameLayout, row, column, tileNumber);
@@ -70,15 +71,15 @@ namespace Game_2048
         {
             Random random = new Random();
             int i, j;
-            while (tiles[i = random.Next(tilesCountPerSide), j = random.Next(tilesCountPerSide)] != null)
+            while (tiles[i = random.Next(tiles.SideLength), j = random.Next(tiles.SideLength)] != null)
                 ;
             tiles[i, j] = AddTile(i, j, 2);
         }
 
         private void RemoveAllTiles()
         {
-            for (int i = 0; i < tilesCountPerSide; i++)
-                for (int j = 0; j < tilesCountPerSide; j++)
+            for (int i = 0; i < tiles.SideLength; i++)
+                for (int j = 0; j < tiles.SideLength; j++)
                     if (tiles[i, j] != null)
                     {
                         tiles[i, j].RemoveSelf();
@@ -106,7 +107,7 @@ namespace Game_2048
         {
             if (angle == 0)
                 return new Cell(row, column);
-            int offsetRow = tilesCountPerSide - 1, offsetColumn = offsetRow;
+            int offsetRow = tiles.SideLength - 1, offsetColumn = offsetRow;
             if (angle == 90)
                 offsetRow = 0;
             else if (angle == 270)
@@ -121,16 +122,16 @@ namespace Game_2048
             get
             {
                 int[,] directions = { { 0, 1 }, { 1, 0 } };
-                for (int i = 0; i < tilesCountPerSide; i++)
-                    for (int j = 0; j < tilesCountPerSide; j++)
+                for (int i = 0; i < tiles.SideLength; i++)
+                    for (int j = 0; j < tiles.SideLength; j++)
                     {
                         if (tiles[i, j] == null)
                             return false;
                         for (int n = 0; n < directions.GetLength(0); n++)
                         {
-                            int newI = i + directions[n, 0], newJ = j + directions[n, 1];
-                            if (newI >= 0 && newI < tilesCountPerSide && newJ >= 0 && newJ < tilesCountPerSide &&
-                                (tiles[newI, newJ] == null || tiles[i, j].Number == tiles[newI, newJ].Number))
+                            int row = i + directions[n, 0], column = j + directions[n, 1];
+                            if (row >= 0 && row < tiles.SideLength && column >= 0 && column < tiles.SideLength &&
+                                (tiles[row, column] == null || tiles[i, j].Number == tiles[row, column].Number))
                                 return false;
                         }
                     }
@@ -154,16 +155,16 @@ namespace Game_2048
             Tile.Storyboard = new Storyboard();
             bool moved = false, won = false, merged = false;
             int count = 0;
-            for (int row = 0; row < tilesCountPerSide; row++)
+            for (int row = 0; row < tiles.SideLength; row++)
             {
                 int next = 0;
-                for (int a = 0; a < tilesCountPerSide; a++)
+                for (int a = 0; a < tiles.SideLength; a++)
                 {
                     Cell cell1 = RotateCell(row, a, angle);
                     if (tiles[cell1.Row, cell1.Column] != null)
                     {
                         bool foundSecond = false, onlyMoved = false;
-                        for (int b = a + 1; b < tilesCountPerSide; b++)
+                        for (int b = a + 1; b < tiles.SideLength; b++)
                         {
                             Cell cell2 = RotateCell(row, b, angle);
                             if (tiles[cell2.Row, cell2.Column] != null)
@@ -212,7 +213,7 @@ namespace Game_2048
                         }
                     }
                 }
-                Cell cell = RotateCell(row, tilesCountPerSide - 1, angle);
+                Cell cell = RotateCell(row, tiles.SideLength - 1, angle);
                 if (tiles[cell.Row, cell.Column] != null)
                     count++;
             }
@@ -227,9 +228,9 @@ namespace Game_2048
                     ViewModel.GameState = GameState.Won;
                 else
                 {
-                    if (count < tilesCountPerSide)
+                    if (count < tiles.SideLength)
                         AddRandomTile();
-                    if (count >= tilesCountPerSide - 1 && IsGameOver)
+                    if (count >= tiles.SideLength - 1 && IsGameOver)
                         ViewModel.GameState = GameState.Over;
                 }
                 isMovementFinished = true;
@@ -259,7 +260,7 @@ namespace Game_2048
                 for (int j = 0; j < tilesCountPerSide; j++)
                     AddTile(i, j, 0);
             }
-            tiles = new Tile[tilesCountPerSide, tilesCountPerSide];
+            tiles = new SquareArray<Tile>(tilesCountPerSide);
             if (LoadGameProgress())
                 ViewModel.GameState = GameState.Started;
             isLayoutReady = true;
