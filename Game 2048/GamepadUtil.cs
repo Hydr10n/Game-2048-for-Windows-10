@@ -6,7 +6,7 @@ using Windows.Gaming.Input;
 
 namespace Hydr10n
 {
-    namespace DataUtils
+    namespace InputUtils
     {
         class GamepadUtil
         {

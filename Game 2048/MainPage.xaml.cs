@@ -6,6 +6,7 @@
  */
 
 using Hydr10n.DataUtils;
+using Hydr10n.InputUtils;
 using System;
 using System.Numerics;
 using Windows.ApplicationModel;
